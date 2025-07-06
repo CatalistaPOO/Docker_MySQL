@@ -264,3 +264,65 @@ having importeMaximo = (select max(importe) as importeMax
 select max(importe) as importeMax
 from movimientos 
 where fk_tipo = 1;
+
+
+
+-- 21 -Obtener el nombre y apellido1 de los clientes que tienen al menos una cuenta con un numero 
+-- que contenga la secuencia 'ES98' y que hayan realizado algún movimiento de tipo 'Compras' en el año 2020.
+select cl.nombre, cl.apellido1,cu.numero
+from clientes as cl
+join cuentas as cu on cl.id_cliente = cu.fk_cliente
+join extractos as ex on cu.id_cuenta = ex.fk_cuenta
+join movimientos as mo on ex.id_extracto = mo.fk_extracto
+where mo.fk_tipo = 1 and year(mo.fecha) = 2020 and cu.numero like 'ES98%'
+group by id_cliente , cu.numero
+order by cu.numero;
+
+-- 22 -Listar el pan de las tarjetas que han tenido movimientos en más de un tipo de movimiento diferente.
+SELECT pan
+from tarjetas as ta
+join movimientos as mo on id_tarjeta = mo.fk_tarjeta
+join tipos_movimientos as tm on tm.id_tipo_movimiento = mo.fk_tipo
+group by pan
+having count(distinct(tm.tipo_movimiento)) > 1 in(select count(distinct(fk_tipo))
+										from movimientos as mo
+										join tarjetas as ta on mo.fk_tarjeta = ta.id_tarjeta
+										group by id_tarjeta);
+
+-- seleccionar tipo de movimiento (distinct) por tarjeta
+select count(distinct(fk_tipo))
+from movimientos as mo
+join tarjetas as ta on mo.fk_tarjeta = ta.id_tarjeta
+group by id_tarjeta;
+
+
+-- 23 -Para cada cliente, mostrar su nombre, apellido1 y el número total de movimientos que ha realizado, así como el importe promedio de esos movimientos.
+-- Solo incluir clientes que hayan realizado mas de 100 movimientos en total.
+select cl.id_cliente, cl.nombre, cl.apellido1, count(mo.id_movimiento) as nMovimientos, avg(mo.importe) as mediaImportes
+from clientes as cl
+join cuentas as cu on cl.id_cliente = cu.fk_cliente
+join extractos as ex on cu.id_cuenta = ex.fk_cuenta
+join movimientos as mo on ex.id_extracto = mo.fk_extracto
+group by  id_cliente
+having count(mo.id_movimiento) > 100; 
+
+-- 24 -Identificar los id_cuenta y numero de las cuentas que no han generado ningún movimiento en los tres ultimos 3 meses (desde el 1 de octubre de 2020 hasta el 31 de diciembre de 2020).
+select id_cuenta, numero, mes, anyo,  id_movimiento
+from extractos as ex 
+join cuentas as cu on cu.id_cuenta = ex.fk_cuenta
+left join movimientos as mo on mo.fk_extracto = ex.id_extracto
+where mo.id_movimiento is null;
+-- faltan 3 ultimos meses
+
+-- 25 -Mostrar el id_cliente y nombre de los clientes que poseen al menos una tarjeta de crédito y al menos una tarjeta de débito 
+-- (asumiendo que 'Crédito' y 'Débito' son valores válidos para tipo en la tabla tarjetas).
+
+-- 26 -Listar los id_extracto, anyo y mes de los extractos cuyo importe total sea inferior al promedio de los importes totales de todos los extractos de su mismo año.
+
+-- 27 -Obtener el nombre y apellido1 de los clientes que han realizado compras por un valor superior a 500 euros y devoluciones por un valor superior a 100 euros, ambos en el mismo mes y año.
+
+-- 28 -Encontrar los id_cliente y nombre de los clientes cuyo número total de tarjetas es inferior a la desviación estándar del número de tarjetas por cliente.
+
+-- 29 -Para cada municipio de la provincia de 'Valencia', calcular el importe total de todos los movimientos de tipo 'Compra' realizados por clientes de ese municipio en el primer trimestre de 2024. Solo mostrar municipios donde este importe total sea superior a 1000 euros.
+
+-- 30 -Mostrar el id_cliente, nombre y apellido1 de los clientes que tienen un movimiento con el importe mínimo registrado entre todos los movimientos de tipo 'Devolución'. Si hay varios con el mismo importe mínimo, mostrar todos.
